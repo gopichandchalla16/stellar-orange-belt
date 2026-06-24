@@ -18,11 +18,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Lint
         run: npm run lint
@@ -41,4 +40,9 @@ jobs:
 
       - name: Pipeline Summary
         run: |
-          echo '\u2705 All steps passed — Stellar Orange Belt Level 3 CI/CD is green!'
+          echo ''
+          echo '╔══════════════════════════════════════════╗'
+          echo '║  ✅ CI/CD Pipeline Passed Successfully!  ║'
+          echo '║  🟠 Stellar Orange Belt — Level 3 Ready  ║'
+          echo '╚══════════════════════════════════════════╝'
+          echo ''
