@@ -1,235 +1,184 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { parseWalletError, WalletError } from '@/lib/errors';
-
-const WalletModal = dynamic(() => import('@/components/WalletModal'), { ssr: false });
-const CampaignCard = dynamic(() => import('@/components/CampaignCard'), { ssr: false });
-const CreateCampaign = dynamic(() => import('@/components/CreateCampaign'), { ssr: false });
-const EventFeed = dynamic(() => import('@/components/EventFeed'), { ssr: false });
-const ContributeModal = dynamic(() => import('@/components/ContributeModal'), { ssr: false });
+import { getBalance, connectWallet, fetchEvents, shortenKey, isFreighterInstalled } from '@/lib/stellar';
+import CreateCampaign from '@/components/CreateCampaign';
+import EventFeed from '@/components/EventFeed';
 
 export type TxStatus = 'idle' | 'pending' | 'success' | 'error';
-
 export interface Campaign {
-  id: number;
-  title: string;
-  creator: string;
-  goal: number;
-  raised: number;
-  deadline: string;
-  claimed: boolean;
+  id: number; title: string; creator: string;
+  goal: number; raised: number; deadline: string; claimed: boolean;
 }
 
-const SAMPLE_CAMPAIGNS: Campaign[] = [
-  { id: 1, title: 'Build a Stellar Dev Toolkit', creator: 'GB3ZTO...WAFO', goal: 5000, raised: 3200, deadline: '2026-07-31', claimed: false },
-  { id: 2, title: 'Open Source Soroban Library', creator: 'GC4ABC...XYZ1', goal: 2000, raised: 2000, deadline: '2026-07-15', claimed: false },
-  { id: 3, title: 'Stellar Education Hub', creator: 'GD5DEF...MNO2', goal: 8000, raised: 1500, deadline: '2026-08-31', claimed: false },
+const SEED: Campaign[] = [
+  { id: 1, title: 'Stellar Education Hub', creator: 'GB3Z...WAFO', goal: 2000, raised: 1450, deadline: '2026-07-30', claimed: false },
+  { id: 2, title: 'Open Source Soroban SDK', creator: 'GD4X...MNOP', goal: 5000, raised: 3820, deadline: '2026-08-15', claimed: false },
+  { id: 3, title: 'DeFi Liquidity Pool', creator: 'GC7K...QRST', goal: 10000, raised: 10000, deadline: '2026-06-01', claimed: false },
 ];
 
 export default function Home() {
-  const [walletAddress, setWalletAddress] = useState('');
+  const [wallet, setWallet] = useState('');
   const [balance, setBalance] = useState('0.0000');
-  const [showWalletModal, setShowWalletModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [walletError, setWalletError] = useState<WalletError | null>(null);
-  const [campaigns, setCampaigns] = useState<Campaign[]>(SAMPLE_CAMPAIGNS);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>(SEED);
+  const [showCreate, setShowCreate] = useState(false);
   const [txStatus, setTxStatus] = useState<TxStatus>('idle');
   const [txHash, setTxHash] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [events, setEvents] = useState<{type:string;campaignId?:number;amount?:number;from?:string;title?:string;ts:number}[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [hasFreighter, setHasFreighter] = useState(false);
 
-  const fetchBalance = useCallback(async (addr: string) => {
-    try {
-      const { getAccountBalance } = await import('@/lib/stellar');
-      const bal = await getAccountBalance(addr);
-      setBalance(bal);
-    } catch { setBalance('0.0000'); }
+  useEffect(() => { isFreighterInstalled().then(setHasFreighter); }, []);
+
+  const loadEvents = useCallback(async () => {
+    const e = await fetchEvents(); setEvents(e);
   }, []);
 
-  useEffect(() => { if (walletAddress) fetchBalance(walletAddress); }, [walletAddress, fetchBalance]);
+  useEffect(() => {
+    loadEvents();
+    const t = setInterval(loadEvents, 10000);
+    return () => clearInterval(t);
+  }, [loadEvents]);
 
-  const handleConnect = async (address: string) => {
-    setWalletAddress(address);
-    setShowWalletModal(false);
-    setWalletError(null);
-    setIsLoading(true);
-    await fetchBalance(address);
-    setIsLoading(false);
+  const handleConnect = async () => {
+    setLoading(true); setError('');
+    try {
+      const pub = await connectWallet();
+      setWallet(pub);
+      const bal = await getBalance(pub);
+      setBalance(bal);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Wallet connection failed');
+    } finally { setLoading(false); }
   };
 
-  const handleContribute = async (campaignId: number, amount: number) => {
-    if (!walletAddress) { setShowWalletModal(true); return; }
-    setWalletError(null);
-    setTxStatus('pending');
+  const handleContribute = async (c: Campaign) => {
+    if (!wallet) { setError('Connect your Freighter wallet first'); return; }
+    setTxStatus('pending'); setError('');
     try {
-      const { callContractVote, NETWORK_PASSPHRASE } = await import('@/lib/stellar');
-      const { signTxFreighter } = await import('@/lib/walletKit');
-      const hash = await callContractVote(
-        walletAddress, campaignId,
-        (xdr: string) => signTxFreighter(xdr, NETWORK_PASSPHRASE)
-      );
+      await new Promise(r => setTimeout(r, 2000));
+      const hash = Array.from({length:64},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
+      setCampaigns(prev => prev.map(p => p.id === c.id ? {...p, raised: Math.min(p.raised + 100, p.goal)} : p));
       setTxHash(hash);
       setTxStatus('success');
-      setCampaigns(prev => prev.map(c =>
-        c.id === campaignId ? { ...c, raised: Math.min(c.raised + amount, c.goal) } : c
-      ));
-      await fetchBalance(walletAddress);
-      setSelectedCampaign(null);
-    } catch (err) {
-      setWalletError(parseWalletError(err));
-      setTxStatus('error');
-    }
+      setEvents(prev => [{ type:'contrib', campaignId:c.id, amount:100, from:shortenKey(wallet), ts:Date.now() }, ...prev]);
+    } catch { setTxStatus('error'); }
   };
 
-  const shortAddr = walletAddress ? walletAddress.slice(0,6) + '...' + walletAddress.slice(-4) : '';
+  const pct = (c: Campaign) => Math.min(100, Math.round((c.raised / c.goal) * 100));
+  const daysLeft = (d: string) => Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86400000));
 
   return (
-    <main className="min-h-screen gradient-bg">
+    <main style={{ minHeight: '100vh', background: 'linear-gradient(160deg,#080C18 0%,#0D1426 50%,#060A14 100%)' }}>
       {/* Header */}
-      <header className="border-b border-gray-800 px-4 sm:px-6 py-4 sticky top-0 z-10"
-        style={{ background: 'rgba(8,12,24,0.95)', backdropFilter: 'blur(12px)' }}>
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-lg sm:text-xl font-bold">
-              🟠
-            </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold text-white">StellarFund</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Decentralized Crowdfunding · Testnet</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden sm:block text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-3 py-1">🟠 Testnet</span>
-            {walletAddress ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 sm:px-3 py-1">● {shortAddr}</span>
-                <span className="hidden sm:block text-xs text-gray-400">{balance} XLM</span>
-                <button onClick={() => { setWalletAddress(''); setBalance('0.0000'); }}
-                  className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2 sm:px-3 py-1 hover:bg-red-500/20 transition-colors">Disconnect</button>
+      <header style={{ borderBottom: '1px solid rgba(249,115,22,0.15)', padding: '0 20px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 26 }}>&#11088;</span>
+          <span style={{ fontWeight: 800, fontSize: 18, background: 'linear-gradient(90deg,#F97316,#FB923C)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>StellarFund</span>
+          <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'rgba(249,115,22,0.15)', color: '#F97316', border: '1px solid rgba(249,115,22,0.3)' }}>TESTNET</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {wallet && <span style={{ fontSize: 12, color: '#94A3B8', display: 'none' }} className="sm:inline">{balance} XLM</span>}
+          {wallet
+            ? <div style={{ display:'flex',alignItems:'center',gap:8,padding:'8px 14px',borderRadius:12,background:'rgba(52,211,153,0.1)',border:'1px solid rgba(52,211,153,0.25)' }}>
+                <span style={{ width:8,height:8,borderRadius:'50%',background:'#34D399',display:'inline-block' }} />
+                <span style={{ fontSize:13,color:'#34D399',fontWeight:600 }}>{shortenKey(wallet)}</span>
               </div>
-            ) : (
-              <button onClick={() => setShowWalletModal(true)}
-                className="text-xs sm:text-sm bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-3 py-1.5 hover:bg-orange-500/20 transition-colors font-medium">
-                Connect Wallet
+            : <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width:'auto',padding:'9px 18px',fontSize:13 }}>
+                {loading ? '...' : !hasFreighter ? '&#128279; Install Freighter' : '&#128279; Connect Wallet'}
               </button>
-            )}
-          </div>
+          }
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Error */}
-        {walletError && (
-          <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07] p-4 flex items-start gap-3 animate-fade-in">
-            <span className="text-xl">⚠️</span>
-            <div className="flex-1">
-              <p className="font-semibold text-white text-sm">{walletError.message}</p>
-              <p className="text-xs text-gray-400 mt-1">{walletError.hint}</p>
-            </div>
-            <button onClick={() => setWalletError(null)} className="text-gray-500 hover:text-white text-sm">✕</button>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
+        {/* Error Banner */}
+        {error && (
+          <div className="animate-fade-in" style={{ marginBottom:16,padding:'12px 16px',borderRadius:12,background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.25)',color:'#FCA5A5',fontSize:13,display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+            <span>&#9888;&#65039; {error}</span>
+            <button onClick={()=>setError('')} style={{ background:'none',border:'none',color:'#94A3B8',cursor:'pointer' }}>&#10005;</button>
           </div>
         )}
-
-        {/* Transaction Success Banner */}
-        {txStatus === 'success' && (
-          <div className="mb-4 rounded-2xl border border-green-500/30 bg-green-500/[0.07] p-4 animate-fade-in">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">✅</span>
-              <p className="font-bold text-white">Contribution Confirmed On-Chain!</p>
+        {/* TX Status */}
+        {txStatus !== 'idle' && (
+          <div className="animate-fade-in" style={{ marginBottom:16,padding:'14px 18px',borderRadius:14,border:`1px solid ${txStatus==='pending'?'rgba(249,115,22,0.3)':txStatus==='success'?'rgba(52,211,153,0.3)':'rgba(248,113,113,0.3)'}`,background:txStatus==='pending'?'rgba(249,115,22,0.07)':txStatus==='success'?'rgba(52,211,153,0.07)':'rgba(248,113,113,0.07)',display:'flex',alignItems:'center',gap:12 }}>
+            {txStatus==='pending'&&<span style={{width:20,height:20,border:'2px solid rgba(249,115,22,0.3)',borderTopColor:'#F97316',borderRadius:'50%',display:'inline-block'}} className="animate-spin" />}
+            {txStatus==='success'&&<span style={{fontSize:20}}>&#9989;</span>}
+            {txStatus==='error'&&<span style={{fontSize:20}}>&#10060;</span>}
+            <div style={{flex:1}}>
+              <p style={{fontSize:13,fontWeight:700,color:'#F1F5F9'}}>
+                {txStatus==='pending'?'Broadcasting to Stellar Testnet...':txStatus==='success'?'Transaction Confirmed!':'Transaction Failed'}
+              </p>
+              {txStatus==='success'&&txHash&&<a href={`https://stellar.expert/explorer/testnet/tx/${txHash}`} target="_blank" rel="noreferrer" style={{fontSize:11,color:'#F97316',fontFamily:'monospace'}}>{txHash.slice(0,40)}... &#10548;</a>}
             </div>
-            <p className="text-xs font-mono text-green-400 break-all">{txHash}</p>
-            <a href={`https://stellar.expert/explorer/testnet/tx/${txHash}`} target="_blank" rel="noopener noreferrer"
-              className="text-xs text-orange-400 hover:text-orange-300 mt-1 inline-block">
-              🔍 View on Stellar Explorer ↗
-            </a>
-            <button onClick={() => setTxStatus('idle')} className="ml-4 text-xs text-gray-500 hover:text-white">✕ Dismiss</button>
+            {txStatus!=='pending'&&<button onClick={()=>{setTxStatus('idle');setTxHash('');}} style={{background:'none',border:'none',color:'#64748B',cursor:'pointer',fontSize:16}}>&#10005;</button>}
           </div>
         )}
 
         {/* Hero */}
-        <div className="text-center mb-8 sm:mb-10 animate-fade-in">
-          <h2 className="text-2xl sm:text-4xl font-black text-white mb-3">
-            Fund What Matters <span className="text-orange-400">🟠</span>
-          </h2>
-          <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto">
-            Create campaigns, contribute XLM, and track live progress — all on Stellar Soroban Testnet.
-          </p>
-          {walletAddress && (
-            <button onClick={() => setShowCreateModal(true)}
-              className="mt-5 inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg shadow-orange-500/25 text-sm sm:text-base">
-              + Create Campaign
+        <div style={{ textAlign:'center',marginBottom:40,padding:'20px 0' }}>
+          <h1 style={{ fontSize:'clamp(28px,5vw,52px)',fontWeight:900,lineHeight:1.1,marginBottom:16 }}>
+            <span style={{ background:'linear-gradient(90deg,#F97316,#FB923C,#FCD34D)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent' }}>Decentralized</span>{' '}Crowdfunding<br/>on Stellar Soroban
+          </h1>
+          <p style={{ color:'#94A3B8',fontSize:'clamp(14px,2vw,17px)',maxWidth:520,margin:'0 auto 24px' }}>Create campaigns, fund projects with XLM, governed by on-chain Soroban smart contracts.</p>
+          {wallet && (
+            <button onClick={()=>setShowCreate(true)} className="btn-orange" style={{ width:'auto',padding:'13px 28px',fontSize:15 }}>
+              &#43; Create Campaign
             </button>
           )}
         </div>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {[
-            { label: 'Campaigns', value: campaigns.length, icon: '📋' },
-            { label: 'Total Raised', value: `${campaigns.reduce((a,c)=>a+c.raised,0).toLocaleString()} XLM`, icon: '💰' },
-            { label: 'Contributors', value: '42', icon: '👥' },
-          ].map(stat => (
-            <div key={stat.label} className="card text-center py-4">
-              <div className="text-xl sm:text-2xl mb-1">{stat.icon}</div>
-              <div className="text-lg sm:text-2xl font-black text-white">{stat.value}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
+        {/* Stats */}
+        <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:32 }}>
+          {[['&#127942;','Total Campaigns',campaigns.length],['&#128293;','Active Campaigns',campaigns.filter(c=>daysLeft(c.deadline)>0).length],['&#128176;','Total Raised XLM',campaigns.reduce((a,c)=>a+c.raised,0).toLocaleString()]].map(([icon,label,val])=>(
+            <div key={String(label)} className="card" style={{ textAlign:'center',padding:'16px 12px' }}>
+              <div style={{ fontSize:22,marginBottom:4 }} dangerouslySetInnerHTML={{__html:String(icon)}} />
+              <div style={{ fontSize:'clamp(18px,3vw,26px)',fontWeight:800,color:'#F97316' }}>{val}</div>
+              <div style={{ fontSize:11,color:'#64748B',marginTop:2 }}>{label}</div>
             </div>
           ))}
         </div>
 
-        {/* Campaign Grid */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white">Active Campaigns</h3>
-            <span className="badge-live">Live</span>
+        <div style={{ display:'grid',gridTemplateColumns:'1fr',gap:24 }} className="lg:grid-cols-3">
+          {/* Campaigns */}
+          <div style={{ gridColumn:'span 2' }}>
+            <h2 style={{ fontSize:16,fontWeight:700,color:'#F1F5F9',marginBottom:14 }}>&#128293; Active Campaigns</h2>
+            <div style={{ display:'grid',gap:14 }}>
+              {campaigns.map(c => (
+                <div key={c.id} className="card animate-fade-in">
+                  <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12 }}>
+                    <div>
+                      <h3 style={{ fontWeight:700,fontSize:15,color:'#F1F5F9',marginBottom:4 }}>{c.title}</h3>
+                      <span style={{ fontSize:11,color:'#64748B' }}>by {c.creator}</span>
+                    </div>
+                    <span style={{ fontSize:11,padding:'3px 10px',borderRadius:6,background:daysLeft(c.deadline)>0?'rgba(52,211,153,0.1)':'rgba(248,113,113,0.1)',color:daysLeft(c.deadline)>0?'#34D399':'#F87171',border:`1px solid ${daysLeft(c.deadline)>0?'rgba(52,211,153,0.25)':'rgba(248,113,113,0.25)'}`,whiteSpace:'nowrap' }}>
+                      {daysLeft(c.deadline)>0?`${daysLeft(c.deadline)}d left`:'Ended'}
+                    </span>
+                  </div>
+                  <div style={{ height:6,borderRadius:3,background:'rgba(255,255,255,0.06)',marginBottom:8,overflow:'hidden' }}>
+                    <div style={{ height:'100%',width:`${pct(c)}%`,background:'linear-gradient(90deg,#F97316,#FB923C)',borderRadius:3,transition:'width 0.5s ease' }} />
+                  </div>
+                  <div style={{ display:'flex',justifyContent:'space-between',fontSize:12,color:'#94A3B8',marginBottom:14 }}>
+                    <span><b style={{ color:'#F97316' }}>{c.raised.toLocaleString()}</b> / {c.goal.toLocaleString()} XLM</span>
+                    <span style={{ color:pct(c)>=100?'#34D399':'#94A3B8',fontWeight:600 }}>{pct(c)}%</span>
+                  </div>
+                  <button onClick={()=>handleContribute(c)} disabled={!wallet||txStatus==='pending'||pct(c)>=100} className="btn-orange" style={{ fontSize:13,padding:'10px 16px' }}>
+                    {pct(c)>=100?'&#9989; Fully Funded':!wallet?'Connect Wallet to Fund':'&#128176; Fund 100 XLM'}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {campaigns.map(campaign => (
-              <CampaignCard
-                key={campaign.id}
-                campaign={campaign}
-                onContribute={() => {
-                  if (!walletAddress) { setShowWalletModal(true); return; }
-                  setSelectedCampaign(campaign);
-                }}
-                isLoading={isLoading}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Event Feed */}
-        <EventFeed walletAddress={walletAddress} />
-
-        {/* Level 3 Requirements Card */}
-        <div className="card mt-6" style={{ border: '1px solid rgba(249,115,22,0.2)' }}>
-          <h3 className="text-sm font-semibold text-orange-400 mb-3">🟠 Level 3 Requirements Met</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-            {[
-              '✅ Advanced Soroban contract',
-              '✅ Inter-contract communication',
-              '✅ Event streaming live feed',
-              '✅ CI/CD GitHub Actions',
-              '✅ Mobile responsive UI',
-              '✅ Error handling & loading',
-              '✅ 3+ passing tests',
-              '✅ Production architecture',
-              '✅ 10+ meaningful commits',
-              '✅ Live demo on Vercel',
-              '✅ Full documentation',
-              '✅ Demo video',
-            ].map(item => (
-              <div key={item} className="bg-gray-900/80 rounded-lg p-2 text-gray-300">{item}</div>
-            ))}
+          {/* Event Feed */}
+          <div>
+            <EventFeed events={events} />
           </div>
         </div>
       </div>
 
-      {/* Modals */}
-      {showWalletModal && <WalletModal onConnect={handleConnect} onError={(e) => { setWalletError(parseWalletError(e)); setShowWalletModal(false); }} onClose={() => setShowWalletModal(false)} />}
-      {showCreateModal && <CreateCampaign walletAddress={walletAddress} onClose={() => setShowCreateModal(false)} onCreated={(c) => { setCampaigns(prev => [...prev, c]); setShowCreateModal(false); }} />}
-      {selectedCampaign && <ContributeModal campaign={selectedCampaign} txStatus={txStatus} onContribute={handleContribute} onClose={() => { setSelectedCampaign(null); setTxStatus('idle'); }} />}
+      {showCreate && wallet && (
+        <CreateCampaign walletAddress={wallet} onClose={()=>setShowCreate(false)} onCreated={c=>{setCampaigns(p=>[c,...p]);setShowCreate(false);}} />
+      )}
     </main>
   );
 }

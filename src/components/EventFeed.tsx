@@ -1,69 +1,36 @@
 'use client';
-import { useState, useEffect } from 'react';
 
-interface FeedEvent {
-  id: number;
-  type: 'contrib' | 'created' | 'claimed';
-  message: string;
-  time: string;
+interface Event {
+  type: string; campaignId?: number; amount?: number;
+  from?: string; title?: string; ts: number;
 }
+interface Props { events: Event[]; }
 
-const INITIAL_EVENTS: FeedEvent[] = [
-  { id: 1, type: 'contrib', message: 'GB3Z...WAFO contributed 100 XLM to campaign #1', time: '30s ago' },
-  { id: 2, type: 'contrib', message: 'GC4A...XYZ1 contributed 250 XLM to campaign #2', time: '2m ago' },
-  { id: 3, type: 'created', message: 'New campaign created: Stellar Education Hub', time: '5m ago' },
-  { id: 4, type: 'claimed', message: 'GD5D...MNO2 claimed 2000 XLM from campaign #2', time: '12m ago' },
-];
+const timeAgo = (ts: number) => {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+};
 
-export default function EventFeed({ walletAddress }: { walletAddress: string }) {
-  const [events, setEvents] = useState<FeedEvent[]>(INITIAL_EVENTS);
-  const [isLive, setIsLive] = useState(true);
-
-  useEffect(() => {
-    if (!isLive) return;
-    const interval = setInterval(() => {
-      const random = Math.random();
-      const newEvent: FeedEvent = {
-        id: Date.now(),
-        type: random > 0.7 ? 'created' : 'contrib',
-        message: random > 0.7
-          ? 'New campaign created on-chain'
-          : `${walletAddress ? walletAddress.slice(0,6)+'...'+walletAddress.slice(-4) : 'G'+Math.random().toString(36).slice(2,8).toUpperCase()+'...'+Math.random().toString(36).slice(2,6).toUpperCase()} contributed ${Math.floor(Math.random()*200+10)} XLM`,
-        time: 'just now',
-      };
-      setEvents(prev => [newEvent, ...prev.slice(0, 6)]);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [isLive, walletAddress]);
-
-  const iconMap = { contrib: '💳', created: '🚀', claimed: '✅' };
-
+export default function EventFeed({ events }: Props) {
   return (
-    <div className="card mt-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">📡</span>
-          <h3 className="text-sm font-bold text-white">Live Contract Events</h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="badge-live">Streaming</span>
-          <button onClick={() => setIsLive(!isLive)}
-            className={`text-xs px-3 py-1 rounded-full border transition-all ${
-              isLive ? 'border-green-500/30 bg-green-500/10 text-green-400' : 'border-gray-600 bg-gray-800 text-gray-400'
-            }`}>
-            {isLive ? '⏸ Pause' : '▶ Resume'}
-          </button>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 240, overflowY: 'auto' }}>
-        {events.map(event => (
-          <div key={event.id} className="animate-fade-in"
-            style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <span>{iconMap[event.type]}</span>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 12, color: '#E2E8F0' }}>{event.message}</p>
-              <p style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>{event.time}</p>
+    <div>
+      <h2 style={{ fontSize:16,fontWeight:700,color:'#F1F5F9',marginBottom:14 }}>&#128267; Live Events</h2>
+      <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+        {events.length === 0 && (
+          <p style={{ fontSize:13,color:'#64748B',textAlign:'center',padding:'20px 0' }}>Waiting for on-chain events...</p>
+        )}
+        {events.map((e, i) => (
+          <div key={i} className="animate-fade-in" style={{ padding:'12px 14px',borderRadius:12,background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)' }}>
+            <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4 }}>
+              <span style={{ fontSize:12,fontWeight:600,color:e.type==='contrib'?'#34D399':'#F97316' }}>
+                {e.type==='contrib'?'&#128176; Contribution':'&#127942; Campaign Created'}
+              </span>
+              <span style={{ fontSize:10,color:'#475569' }}>{timeAgo(e.ts)}</span>
             </div>
+            {e.type==='contrib' && <p style={{ fontSize:12,color:'#94A3B8' }}><b style={{ color:'#fff' }}>{e.amount} XLM</b> from {e.from} &#8594; Campaign #{e.campaignId}</p>}
+            {e.type==='created' && <p style={{ fontSize:12,color:'#94A3B8' }}>&#8220;{e.title}&#8221;</p>}
           </div>
         ))}
       </div>

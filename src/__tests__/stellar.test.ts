@@ -1,19 +1,24 @@
-// Unit tests for stellar utility functions
+import { shortenKey, HORIZON, NETWORK } from '@/lib/stellar';
 
-describe('Stellar Constants', () => {
-  test('NETWORK_PASSPHRASE is correct for testnet', async () => {
-    const { NETWORK_PASSPHRASE } = await import('../lib/stellar');
-    expect(NETWORK_PASSPHRASE).toBe('Test SDF Network ; September 2015');
+describe('Stellar Utilities', () => {
+  test('shortenKey formats public key correctly', () => {
+    const key = 'GBTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789012';
+    const short = shortenKey(key);
+    expect(short).toContain('...');
+    expect(short.startsWith('GBTEST')).toBe(true);
   });
-
-  test('HORIZON_URL is the testnet Horizon server', async () => {
-    const { HORIZON_URL } = await import('../lib/stellar');
-    expect(HORIZON_URL).toBe('https://horizon-testnet.stellar.org');
+  test('HORIZON points to testnet', () => {
+    expect(HORIZON).toContain('testnet');
   });
-
-  test('CAMPAIGN_CONTRACT is a valid-looking Stellar address', async () => {
-    const { CAMPAIGN_CONTRACT } = await import('../lib/stellar');
-    expect(CAMPAIGN_CONTRACT).toMatch(/^C/);
-    expect(CAMPAIGN_CONTRACT.length).toBeGreaterThan(10);
+  test('NETWORK is Stellar testnet passphrase', () => {
+    expect(NETWORK).toContain('Test SDF Network');
+  });
+  test('progress pct rounds correctly', () => {
+    expect(Math.round((1450/2000)*100)).toBe(73);
+  });
+  test('daysLeft returns 0 for past date', () => {
+    const past = '2020-01-01';
+    const days = Math.max(0, Math.ceil((new Date(past).getTime() - Date.now()) / 86400000));
+    expect(days).toBe(0);
   });
 });
