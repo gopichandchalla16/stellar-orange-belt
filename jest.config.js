@@ -16,13 +16,9 @@ const config = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|sass|scss)$': '<rootDir>/src/__mocks__/styleMock.js',
   },
-  setupFilesAfterFramework: ['<rootDir>/jest.setup.js'],
   passWithNoTests: true,
   forceExit: true,
   testTimeout: 15000,
-  testEnvironmentOptions: {
-    customExportConditions: [''],
-  },
 };
 
 module.exports = config;
