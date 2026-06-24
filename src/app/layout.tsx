@@ -6,7 +6,11 @@ export const metadata: Metadata = {
   description: 'Create and fund campaigns on Stellar Soroban Testnet.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>

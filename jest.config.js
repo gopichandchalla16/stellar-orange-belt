@@ -1,7 +1,13 @@
-module.exports = {
-  testEnvironment: 'jest-environment-jsdom',
-  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
-  transform: { '^.+\\.(ts|tsx)$': ['ts-jest',{tsconfig:{jsx:'react'}}] },
-  testMatch: ['<rootDir>/src/__tests__/**/*.{ts,tsx}'],
+/** @type {import('jest').Config} */
+const config = {
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { jsx: 'react' } }],
+  },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  setupFilesAfterFramework: [],
   passWithNoTests: true,
 };
+module.exports = config;

@@ -9,7 +9,9 @@ export async function getBalance(pub: string): Promise<string> {
     const d = await r.json();
     const b = d.balances?.find((x: { asset_type: string }) => x.asset_type === 'native');
     return b ? parseFloat(b.balance).toFixed(4) : '0.0000';
-  } catch { return '0.0000'; }
+  } catch {
+    return '0.0000';
+  }
 }
 
 export async function fetchEvents() {
@@ -41,6 +43,6 @@ export async function connectWallet(): Promise<string> {
   return window.freighter.getPublicKey();
 }
 
-export function shortenKey(k: string) {
+export function shortenKey(k: string): string {
   return k.slice(0, 6) + '...' + k.slice(-4);
 }

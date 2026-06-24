@@ -1,14 +1,13 @@
 {
   "name": "stellar-orange-belt",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --passWithNoTests",
-    "type-check": "tsc --noEmit"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "next": "14.2.30",
