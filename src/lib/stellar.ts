@@ -1,14 +1,13 @@
 export const HORIZON = 'https://horizon-testnet.stellar.org';
 export const NETWORK = 'Test SDF Network ; September 2015';
 export const CAMPAIGN_CONTRACT = 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCN3B';
-export const TREASURY_CONTRACT = 'CDTREASURY3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVUSTELLAR';
 
 export async function getBalance(pub: string): Promise<string> {
   try {
     const r = await fetch(`${HORIZON}/accounts/${pub}`);
     if (!r.ok) return '0.0000';
     const d = await r.json();
-    const b = d.balances?.find((x: {asset_type:string}) => x.asset_type === 'native');
+    const b = d.balances?.find((x: { asset_type: string }) => x.asset_type === 'native');
     return b ? parseFloat(b.balance).toFixed(4) : '0.0000';
   } catch { return '0.0000'; }
 }
@@ -26,7 +25,7 @@ declare global {
     freighter?: {
       isConnected(): Promise<boolean>;
       getPublicKey(): Promise<string>;
-      signTransaction(xdr: string, opts: {network: string}): Promise<string>;
+      signTransaction(xdr: string, opts: { network: string }): Promise<string>;
     };
   }
 }
@@ -37,10 +36,11 @@ export async function isFreighterInstalled(): Promise<boolean> {
 }
 
 export async function connectWallet(): Promise<string> {
-  if (typeof window === 'undefined' || !window.freighter) throw new Error('Freighter not installed');
+  if (typeof window === 'undefined' || !window.freighter)
+    throw new Error('Freighter wallet not installed. Please install it from freighter.app');
   return window.freighter.getPublicKey();
 }
 
 export function shortenKey(k: string) {
-  return k.slice(0,6) + '...' + k.slice(-4);
+  return k.slice(0, 6) + '...' + k.slice(-4);
 }
