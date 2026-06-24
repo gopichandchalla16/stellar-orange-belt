@@ -14,12 +14,25 @@ export async function getBalance(pub: string): Promise<string> {
   }
 }
 
-export async function fetchEvents() {
-  return [
-    { type: 'contrib', campaignId: 1, amount: 100, from: 'GB3Z...WAFO', ts: Date.now() - 30000 },
-    { type: 'contrib', campaignId: 2, amount: 250, from: 'GC4A...XYZ1', ts: Date.now() - 120000 },
-    { type: 'created', campaignId: 3, title: 'Stellar Education Hub', ts: Date.now() - 300000 },
-  ];
+export type StellarEvent = {
+  type: 'contrib' | 'created' | 'claimed';
+  campaignId?: number;
+  amount?: number;
+  from?: string;
+  title?: string;
+  ts: number;
+};
+
+const SEED_EVENTS: StellarEvent[] = [
+  { type: 'contrib', campaignId: 2, amount: 500, from: 'GD4X...MNOP', ts: Date.now() - 25000 },
+  { type: 'contrib', campaignId: 1, amount: 100, from: 'GB3Z...WAFO', ts: Date.now() - 90000 },
+  { type: 'created', campaignId: 3, title: 'DeFi Liquidity Pool', ts: Date.now() - 180000 },
+  { type: 'contrib', campaignId: 3, amount: 2000, from: 'GC7K...QRST', ts: Date.now() - 320000 },
+  { type: 'claimed', campaignId: 3, from: 'GC7K...QRST', ts: Date.now() - 420000 },
+];
+
+export async function fetchEvents(): Promise<StellarEvent[]> {
+  return SEED_EVENTS;
 }
 
 declare global {
@@ -39,10 +52,23 @@ export async function isFreighterInstalled(): Promise<boolean> {
 
 export async function connectWallet(): Promise<string> {
   if (typeof window === 'undefined' || !window.freighter)
-    throw new Error('Freighter wallet not installed. Please install it from freighter.app');
+    throw new Error('Freighter not installed — using demo mode');
   return window.freighter.getPublicKey();
 }
 
 export function shortenKey(k: string): string {
+  if (!k) return '';
+  if (k.length <= 12) return k;
   return k.slice(0, 6) + '...' + k.slice(-4);
+}
+
+export function generateDemoTxHash(): string {
+  return Array.from({ length: 64 }, () =>
+    '0123456789abcdef'[Math.floor(Math.random() * 16)]
+  ).join('');
+}
+
+export function generateDemoAddress(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  return 'G' + Array.from({ length: 55 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
