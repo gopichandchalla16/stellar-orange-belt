@@ -26,16 +26,25 @@ export default function CreateCampaign({ walletAddress, onClose, onCreated }: Pr
     e.preventDefault();
     setCreating(true);
     await new Promise(r => setTimeout(r, 1800));
+    const goalNum = Number(goal);
     onCreated({
       id:          Date.now(),
       title,
       description: description || `A ${category.toLowerCase()} project on Stellar Soroban.`,
       creator:     shortenKey(walletAddress),
-      goal:        Number(goal),
+      goal:        goalNum,
       raised:      0,
       deadline,
       claimed:     false,
       category,
+      backerCount: 0,
+      tags:        [category.toLowerCase().replace(/\s+/g, '-')],
+      milestones: [
+        { label: 'Project Kickoff',  target: Math.round(goalNum * 0.25), reached: false, votes: 0, votedBy: [] },
+        { label: 'Milestone 1',      target: Math.round(goalNum * 0.50), reached: false, votes: 0, votedBy: [] },
+        { label: 'Milestone 2',      target: Math.round(goalNum * 0.75), reached: false, votes: 0, votedBy: [] },
+        { label: 'Final Delivery',   target: goalNum,                    reached: false, votes: 0, votedBy: [] },
+      ],
     });
     setCreating(false);
   };
@@ -126,6 +135,9 @@ export default function CreateCampaign({ walletAddress, onClose, onCreated }: Pr
               <div>
                 <label style={{ fontSize: 11, color: '#475569', fontWeight: 600, display: 'block', marginBottom: 8, letterSpacing: '0.05em' }}>DEADLINE *</label>
                 <input className="input-field" value={deadline} onChange={e => setDeadline(e.target.value)} required type="date" min={minDate} />
+              </div>
+              <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(52,211,153,0.04)', border: '1px solid rgba(52,211,153,0.12)', fontSize: 11, color: '#475569' }}>
+                ✅ 4 milestones will be auto-generated at 25%, 50%, 75%, and 100% of your goal.
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="button" onClick={() => setStep(1)} className="btn-ghost" style={{ flex: 1 }}>← Back</button>
