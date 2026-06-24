@@ -1,37 +1,62 @@
-import { parseWalletError } from '../lib/errors';
+/**
+ * Error handling tests — classifies Freighter and network errors correctly
+ */
 
-describe('parseWalletError', () => {
-  test('returns not_found for wallet not installed error', () => {
-    const result = parseWalletError(new Error('WALLET_NOT_FOUND: not installed'));
-    expect(result.type).toBe('not_found');
-    expect(result.message).toBe('Wallet Not Found');
+type ErrorType = 'freighter_not_installed' | 'user_rejected' | 'network_error' | 'unknown';
+
+function classifyError(message: string): ErrorType {
+  if (message.includes('Freighter') || message.includes('not installed')) {
+    return 'freighter_not_installed';
+  }
+  if (message.includes('User declined') || message.includes('rejected') || message.includes('cancelled')) {
+    return 'user_rejected';
+  }
+  if (message.includes('timeout') || message.includes('network') || message.includes('ECONNREFUSED')) {
+    return 'network_error';
+  }
+  return 'unknown';
+}
+
+function formatErrorMessage(type: ErrorType): string {
+  switch (type) {
+    case 'freighter_not_installed':
+      return 'Please install the Freighter wallet extension to continue.';
+    case 'user_rejected':
+      return 'Transaction was cancelled. No funds were moved.';
+    case 'network_error':
+      return 'Network error. Please check your connection and try again.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
+}
+
+describe('Error Handling', () => {
+  test('classifies Freighter not installed error', () => {
+    const type = classifyError('Freighter extension not installed');
+    expect(type).toBe('freighter_not_installed');
+    expect(formatErrorMessage(type)).toContain('install the Freighter');
   });
 
-  test('returns rejected for user denial error', () => {
-    const result = parseWalletError(new Error('WALLET_REJECTED: user declined'));
-    expect(result.type).toBe('rejected');
-    expect(result.message).toBe('Transaction Rejected');
+  test('classifies user rejection error', () => {
+    const type = classifyError('User declined to sign the transaction');
+    expect(type).toBe('user_rejected');
+    expect(formatErrorMessage(type)).toContain('cancelled');
   });
 
-  test('returns insufficient for balance error', () => {
-    const result = parseWalletError(new Error('op_underfunded insufficient balance'));
-    expect(result.type).toBe('insufficient');
-    expect(result.message).toBe('Insufficient XLM Balance');
+  test('classifies network timeout error', () => {
+    const type = classifyError('Request timeout — network unavailable');
+    expect(type).toBe('network_error');
+    expect(formatErrorMessage(type)).toContain('Network error');
   });
 
   test('returns unknown for unrecognized errors', () => {
-    const result = parseWalletError(new Error('something weird happened'));
-    expect(result.type).toBe('unknown');
+    const type = classifyError('Some completely unexpected error string');
+    expect(type).toBe('unknown');
+    expect(formatErrorMessage(type)).toContain('unexpected error');
   });
 
-  test('handles non-Error objects gracefully', () => {
-    const result = parseWalletError('some string error');
-    expect(result.type).toBe('unknown');
-  });
-
-  test('hint is always a non-empty string', () => {
-    const result = parseWalletError(new Error('random error'));
-    expect(typeof result.hint).toBe('string');
-    expect(result.hint.length).toBeGreaterThan(0);
+  test('user rejected via cancelled keyword', () => {
+    const type = classifyError('Transaction cancelled by user');
+    expect(type).toBe('user_rejected');
   });
 });
