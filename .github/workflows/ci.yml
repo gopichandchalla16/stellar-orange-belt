@@ -26,7 +26,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        continue-on-error: false
 
       - name: Type Check
         run: npm run type-check
@@ -34,18 +33,12 @@ jobs:
 
       - name: Run Tests
         run: npm run test:ci
-        continue-on-error: false
 
       - name: Build
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: ✅ Pipeline Success
+      - name: Pipeline Summary
         run: |
-          echo ''
-          echo '╔══════════════════════════════════════════╗'
-          echo '║  ✅ CI/CD Pipeline Passed Successfully!  ║'
-          echo '║  🟠 Stellar Orange Belt — Level 3 Ready  ║'
-          echo '╚══════════════════════════════════════════╝'
-          echo ''
+          echo '\u2705 All steps passed — Stellar Orange Belt Level 3 CI/CD is green!'

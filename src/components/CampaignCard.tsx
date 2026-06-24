@@ -1,5 +1,5 @@
 'use client';
-import { Campaign } from '@/app/page';
+import { Campaign } from '@/types/campaign';
 
 interface Props {
   campaign: Campaign;
@@ -15,7 +15,7 @@ export default function CampaignCard({ campaign, onContribute, isLoading }: Prop
   return (
     <div className="card hover:border-orange-500/30 transition-all duration-300 animate-fade-in flex flex-col" data-testid="campaign-card">
       <div className="flex items-start justify-between mb-3">
-        <span className="text-2xl">{isGoalMet ? '🎉' : '🟠'}</span>
+        <span className="text-2xl">{isGoalMet ? '\uD83C\uDF89' : '\uD83D\uDFE0'}</span>
         {isGoalMet
           ? <span className="badge-success">Goal Met!</span>
           : <span className="text-xs text-gray-500">{daysLeft}d left</span>
@@ -41,7 +41,7 @@ export default function CampaignCard({ campaign, onContribute, isLoading }: Prop
             : 'bg-orange-500/15 text-orange-400 border border-orange-500/30 hover:bg-orange-500/25'
         } disabled:opacity-40`}
       >
-        {campaign.claimed ? '✅ Claimed' : isGoalMet ? '🎉 Claim Funds' : '💳 Contribute XLM'}
+        {campaign.claimed ? '\u2705 Claimed' : isGoalMet ? '\uD83C\uDF89 Claim Funds' : '\uD83D\uDCB3 Contribute XLM'}
       </button>
     </div>
   );
