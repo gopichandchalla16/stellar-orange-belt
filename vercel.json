@@ -1,11 +1,5 @@
 {
-  "version": 2,
+  "buildCommand": "next build",
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "build": {
-    "env": {
-      "NO_BUILD_CACHE": "1"
-    }
-  }
+  "outputDirectory": ".next"
 }
