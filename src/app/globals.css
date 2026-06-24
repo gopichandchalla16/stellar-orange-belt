@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --orange: #F97316;
+  --orange-light: #FB923C;
+  --bg: #080C18;
+  --card: #0F1629;
+  --border: rgba(255,255,255,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: #F1F5F9;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.gradient-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(249,115,22,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(251,146,60,0.06) 0%, transparent 60%),
+    #080C18;
+  min-height: 100vh;
+}
+
+.card {
+  background: rgba(15,22,41,0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card:hover { border-color: rgba(255,255,255,0.1); }
+
+.glow-orange {
+  box-shadow: 0 0 0 1px rgba(249,115,22,0.25), 0 8px 32px rgba(249,115,22,0.08);
+  border-color: rgba(249,115,22,0.3) !important;
+}
+
+.btn-orange {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px 24px; border-radius: 14px;
+  font-weight: 700; font-size: 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  border: none; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(249,115,22,0.35);
+}
+.btn-orange:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(249,115,22,0.45); }
+.btn-orange:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-outline {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 11px 20px; border-radius: 12px;
+  font-weight: 600; font-size: 14px; color: #94A3B8;
+  background: transparent; border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-outline:hover { background: rgba(255,255,255,0.05); color: #F1F5F9; }
+
+.progress-bar { width:100%; height:10px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#F97316,#FB923C); transition:width 0.8s cubic-bezier(0.4,0,0.2,1); box-shadow:0 0 12px rgba(249,115,22,0.5); }
+
+.badge-live {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+  color:#F87171; background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.2);
+  border-radius:99px; padding:3px 10px;
+}
+.badge-live::before { content:''; width:6px; height:6px; border-radius:50%; background:#F87171; animation:pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+.badge-success { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#34D399;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:99px;padding:3px 10px; }
+.badge-error { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#F87171;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);border-radius:99px;padding:3px 10px; }
+.badge-pending { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#F97316;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:99px;padding:3px 10px; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.animate-fade-in { animation: fadeIn 0.4s ease both; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.animate-spin { animation: spin 0.8s linear infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.animate-pulse { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:99px; }
