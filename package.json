@@ -1,6 +1,6 @@
 {
   "name": "stellar-orange-belt",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,7 +12,8 @@
   "dependencies": {
     "next": "14.2.30",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "@stellar/freighter-api": "^2.0.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
