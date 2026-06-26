@@ -21,7 +21,7 @@ export type TxStatus = 'idle' | 'pending' | 'success' | 'error';
 
 export interface Milestone {
   label: string;
-  target: number; // XLM amount
+  target: number;
   reached: boolean;
   votes: number;
   votedBy: string[];
@@ -181,7 +181,7 @@ export default function Home() {
       setBalance(bal);
       const txs = await getWalletTransactions(pub);
       setWalletTxs(txs);
-      addToast('Wallet connected successfully!', 'success');
+      addToast('Wallet connected!', 'success');
     } catch {
       const demoAddr = generateDemoAddress();
       setWallet(demoAddr);
@@ -216,7 +216,6 @@ export default function Home() {
           : p
         )
       );
-      // Update leaderboard
       setLeaderboard(prev => {
         const shortAddr = shortenKey(wallet);
         const existing = prev.find(l => l.address === shortAddr);
@@ -270,7 +269,7 @@ export default function Home() {
       from: shortenKey(wallet),
       ts: Date.now(),
     }, ...prev]);
-    addToast('Milestone vote recorded on-chain!', 'success');
+    addToast('Milestone vote recorded!', 'success');
   };
 
   const totalRaised = campaigns.reduce((a, c) => a + c.raised, 0);
@@ -287,7 +286,6 @@ export default function Home() {
       return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     });
 
-  // Analytics data
   const analyticsData = [
     { label: 'Education', raised: 1450, goal: 2000, backers: 23, color: '#60A5FA' },
     { label: 'Dev Tools', raised: 3820, goal: 5000, backers: 47, color: '#A78BFA' },
@@ -297,9 +295,9 @@ export default function Home() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'campaigns', label: `🔥 Campaigns (${campaigns.length})` },
-    { id: 'events', label: `📡 Live Events (${events.length})` },
+    { id: 'events', label: `📡 Live (${events.length})` },
     { id: 'analytics', label: '📊 Analytics' },
-    { id: 'leaderboard', label: '🏆 Leaderboard' },
+    { id: 'leaderboard', label: '🏆 Leaders' },
     { id: 'wallet', label: '👛 Wallet' },
   ];
 
@@ -313,210 +311,211 @@ export default function Home() {
       </div>
 
       {/* Toast Container */}
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 200, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 320 }}>
+      <div className="toast-container">
         {toasts.map(t => (
           <div key={t.id} className="animate-toast" style={{
-            padding: '12px 18px', borderRadius: 14,
+            padding: '11px 16px',
+            borderRadius: 12,
             background: t.type === 'success' ? 'rgba(52,211,153,0.15)' : t.type === 'error' ? 'rgba(248,113,113,0.15)' : 'rgba(96,165,250,0.15)',
-            border: `1px solid ${ t.type === 'success' ? 'rgba(52,211,153,0.35)' : t.type === 'error' ? 'rgba(248,113,113,0.35)' : 'rgba(96,165,250,0.35)'}`,
+            border: `1px solid ${t.type === 'success' ? 'rgba(52,211,153,0.35)' : t.type === 'error' ? 'rgba(248,113,113,0.35)' : 'rgba(96,165,250,0.35)'}`,
             color: t.type === 'success' ? '#34D399' : t.type === 'error' ? '#F87171' : '#60A5FA',
-            fontSize: 13, fontWeight: 600, backdropFilter: 'blur(20px)',
+            fontSize: 12,
+            fontWeight: 600,
+            backdropFilter: 'blur(20px)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            display: 'flex', alignItems: 'center', gap: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}>
             <span>{t.type === 'success' ? '✅' : t.type === 'error' ? '❌' : 'ℹ️'}</span>
-            {t.msg}
+            <span style={{ flex: 1 }}>{t.msg}</span>
           </div>
         ))}
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
+
         {/* ===== HEADER ===== */}
-        <header style={{
-          borderBottom: '1px solid rgba(249,115,22,0.12)',
-          background: 'rgba(5,7,26,0.8)',
-          backdropFilter: 'blur(24px)',
-          position: 'sticky', top: 0, zIndex: 50,
-        }}>
-          <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 20px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <header className="site-header">
+          <div className="header-inner">
+            {/* Logo */}
+            <div className="header-logo">
               <div style={{
-                width: 36, height: 36, borderRadius: 10,
+                width: 34,
+                height: 34,
+                borderRadius: 10,
                 background: 'linear-gradient(135deg,#F97316,#EA580C)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, boxShadow: '0 4px 14px rgba(249,115,22,0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 17,
+                boxShadow: '0 4px 14px rgba(249,115,22,0.45)',
+                flexShrink: 0,
               }}>⭐</div>
               <div>
-                <div style={{ fontWeight: 800, fontSize: 17, background: 'linear-gradient(90deg,#F97316,#FB923C)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.01em' }}>StellarFund</div>
-                <div style={{ fontSize: 10, color: '#475569', fontWeight: 500, letterSpacing: '0.08em' }}>SOROBAN TESTNET</div>
+                <div style={{ fontWeight: 800, fontSize: 16, background: 'linear-gradient(90deg,#F97316,#FB923C)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>StellarFund</div>
+                <div style={{ fontSize: 9, color: '#475569', fontWeight: 500, letterSpacing: '0.08em' }}>SOROBAN TESTNET</div>
               </div>
               {xlmPrice && (
-                <div style={{
-                  marginLeft: 8, padding: '4px 10px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                }}>
-                  <span style={{ fontSize: 11, color: '#94A3B8' }}>XLM</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#F1F5F9' }}>${xlmPrice.price.toFixed(4)}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: xlmPrice.change >= 0 ? '#34D399' : '#F87171' }}>
+                <div className="xlm-price-pill">
+                  <span style={{ fontSize: 10, color: '#94A3B8' }}>XLM</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#F1F5F9' }}>${xlmPrice.price.toFixed(4)}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: xlmPrice.change >= 0 ? '#34D399' : '#F87171' }}>
                     {xlmPrice.change >= 0 ? '▲' : '▼'}{Math.abs(xlmPrice.change).toFixed(2)}%
                   </span>
                 </div>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+            {/* Header Actions */}
+            <div className="header-actions">
               {wallet && (
-                <button onClick={() => setShowCreate(true)} className="btn-secondary" style={{ fontSize: 13, padding: '9px 16px' }}>
-                  + New Campaign
+                <button onClick={() => setShowCreate(true)} className="btn-secondary" style={{ fontSize: 12, padding: '8px 13px' }}>
+                  + Campaign
                 </button>
               )}
               {wallet ? (
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 14px', borderRadius: 12,
+                <div className="wallet-pill" style={{
                   background: isDemoMode ? 'rgba(96,165,250,0.1)' : 'rgba(52,211,153,0.1)',
                   border: `1px solid ${isDemoMode ? 'rgba(96,165,250,0.25)' : 'rgba(52,211,153,0.25)'}`,
-                  cursor: 'default',
                 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: isDemoMode ? '#60A5FA' : '#34D399', display: 'inline-block', animation: 'pulse-glow 2s ease-in-out infinite' }} />
-                  <span style={{ fontSize: 12, color: isDemoMode ? '#60A5FA' : '#34D399', fontWeight: 600 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: isDemoMode ? '#60A5FA' : '#34D399', display: 'inline-block', animation: 'pulse-glow 2s ease-in-out infinite', flexShrink: 0 }} />
+                  <span className="wallet-pill-text" style={{ color: isDemoMode ? '#60A5FA' : '#34D399' }}>
                     {isDemoMode ? '🎮 Demo' : shortenKey(wallet)}
                   </span>
-                  <span style={{ fontSize: 11, color: '#475569' }}>|</span>
-                  <span style={{ fontSize: 12, color: '#94A3B8' }}>{parseFloat(balance).toLocaleString()} XLM</span>
-                  {xlmPrice && <span style={{ fontSize: 11, color: '#475569' }}>(${(parseFloat(balance) * xlmPrice.price).toFixed(0)} USD)</span>}
+                  <span style={{ fontSize: 10, color: '#64748B', flexShrink: 0 }}>·</span>
+                  <span style={{ fontSize: 11, color: '#94A3B8', flexShrink: 0, whiteSpace: 'nowrap' }}>{parseFloat(balance).toLocaleString()} XLM</span>
                 </div>
               ) : (
-                <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '9px 20px', fontSize: 13 }}>
-                  {loading ? '⏳ Connecting...' : hasFreighter ? '🔑 Connect Wallet' : '▶ Launch Demo'}
+                <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '9px 16px', fontSize: 12 }}>
+                  {loading ? '⏳' : hasFreighter ? '🔑 Connect' : '▶ Demo'}
                 </button>
               )}
             </div>
           </div>
         </header>
 
-        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '32px 20px 64px' }}>
+        {/* ===== PAGE SHELL ===== */}
+        <div className="page-shell">
 
+          {/* Error bar */}
           {error && (
-            <div style={{ marginBottom: 20, padding: '14px 18px', borderRadius: 14, background: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.25)', color: '#FCA5A5', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="animate-fade-in">
+            <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: 'rgba(248,113,113,0.07)', border: '1px solid rgba(248,113,113,0.25)', color: '#FCA5A5', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="animate-fade-in">
               <span>⚠ {error}</span>
               <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: 18 }}>×</button>
             </div>
           )}
 
+          {/* TX Status */}
           {txStatus !== 'idle' && (
-            <div style={{
-              marginBottom: 20, padding: '16px 20px', borderRadius: 16,
+            <div className="tx-status-bar animate-fade-in" style={{
               border: `1px solid ${txStatus === 'pending' ? 'rgba(249,115,22,0.35)' : txStatus === 'success' ? 'rgba(52,211,153,0.35)' : 'rgba(248,113,113,0.35)'}`,
               background: txStatus === 'pending' ? 'rgba(249,115,22,0.07)' : txStatus === 'success' ? 'rgba(52,211,153,0.07)' : 'rgba(248,113,113,0.07)',
-              display: 'flex', alignItems: 'center', gap: 14, backdropFilter: 'blur(12px)',
-            }} className="animate-fade-in">
-              <div style={{ fontSize: 22, flexShrink: 0 }}>
+            }}>
+              <div style={{ fontSize: 20, flexShrink: 0 }}>
                 {txStatus === 'pending' ? '⏳' : txStatus === 'success' ? '✅' : '❌'}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: txHash ? 4 : 0 }}>
-                  {txStatus === 'pending' ? 'Broadcasting to Stellar Testnet...' : txStatus === 'success' ? 'Transaction Confirmed on-chain!' : 'Transaction Failed'}
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9' }}>
+                  {txStatus === 'pending' ? 'Broadcasting to Stellar Testnet...' : txStatus === 'success' ? 'Transaction Confirmed!' : 'Transaction Failed'}
                 </p>
                 {txStatus === 'success' && txHash && (
                   <a href={`https://stellar.expert/explorer/testnet/tx/${txHash}`} target="_blank" rel="noreferrer"
-                    style={{ fontSize: 11, color: '#F97316', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                    TX: {txHash.slice(0, 32)}...
+                    style={{ fontSize: 10, color: '#F97316', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                    TX: {txHash.slice(0, 28)}...
                   </a>
                 )}
               </div>
               {txStatus !== 'pending' && (
                 <button onClick={() => { setTxStatus('idle'); setTxHash(''); }}
-                  style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 20 }}>×</button>
+                  style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', fontSize: 20, flexShrink: 0 }}>×</button>
               )}
             </div>
           )}
 
           {/* ===== HERO ===== */}
           {!wallet && (
-            <div className="animate-fade-in" style={{ textAlign: 'center', padding: '48px 0 56px', marginBottom: 8 }}>
-              <div className="animate-float" style={{ fontSize: 64, marginBottom: 20, display: 'inline-block' }}>⭐</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
-                <span className="badge badge-orange" style={{ fontSize: 12, padding: '4px 12px' }}>🟠 Level 3 Orange Belt</span>
-                <span className="badge badge-purple" style={{ fontSize: 12, padding: '4px 12px' }}>Soroban Smart Contracts</span>
+            <div className="hero-section animate-fade-in">
+              <div className="animate-float" style={{ fontSize: 56, marginBottom: 16, display: 'inline-block' }}>⭐</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+                <span className="badge badge-orange">🟠 Level 3 Orange Belt</span>
+                <span className="badge badge-purple">Soroban Smart Contracts</span>
               </div>
-              <h1 style={{ fontSize: 'clamp(32px,6vw,64px)', fontWeight: 900, lineHeight: 1.08, marginBottom: 20, letterSpacing: '-0.03em' }}>
+              <h1 className="hero-title">
                 <span style={{ background: 'linear-gradient(90deg,#F97316,#FB923C,#FCD34D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Decentralized</span>
                 <br />
                 <span style={{ color: '#E2E8F0' }}>Crowdfunding</span>
                 <br />
-                <span style={{ color: '#475569', fontSize: '0.65em', fontWeight: 700 }}>on Stellar Soroban</span>
+                <span style={{ color: '#475569', fontSize: '0.6em', fontWeight: 700 }}>on Stellar Soroban</span>
               </h1>
-              <p style={{ color: '#64748B', fontSize: 'clamp(14px,2vw,17px)', maxWidth: 520, margin: '0 auto 36px', lineHeight: 1.7 }}>
-                Create campaigns, fund projects with XLM, vote on milestones, and track every transaction on the Stellar testnet — governed by on-chain Soroban smart contracts.
+              <p className="hero-subtitle">
+                Create campaigns, fund projects with XLM, vote on milestones, and track every transaction — governed by on-chain Soroban smart contracts.
               </p>
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '14px 32px', fontSize: 15 }}>
+              <div className="hero-cta-row">
+                <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '14px 28px', fontSize: 15 }}>
                   {loading ? '⏳ Connecting...' : hasFreighter ? '🔑 Connect Freighter' : '▶ Launch Demo Mode'}
                 </button>
-                <a href="https://freighter.app" target="_blank" rel="noreferrer" className="btn-ghost" style={{ padding: '14px 24px', fontSize: 14, textDecoration: 'none' }}>
+                <a href="https://freighter.app" target="_blank" rel="noreferrer" className="btn-ghost" style={{ padding: '14px 22px', fontSize: 14, textDecoration: 'none' }}>
                   Install Freighter →
                 </a>
               </div>
-              <p style={{ marginTop: 16, fontSize: 12, color: '#334155' }}>
-                No wallet? <strong style={{ color: '#60A5FA' }}>Demo Mode</strong> gives you full access with 10,000 XLM test tokens.
+              <p style={{ marginTop: 14, fontSize: 12, color: '#334155' }}>
+                No wallet? <strong style={{ color: '#60A5FA' }}>Demo Mode</strong> — 10,000 XLM test tokens included.
               </p>
             </div>
           )}
 
-          {/* ===== CONTRACT INFO BAR ===== */}
-          <div style={{ marginBottom: 24, padding: '12px 18px', borderRadius: 14, background: 'rgba(249,115,22,0.05)', border: '1px solid rgba(249,115,22,0.15)', display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14 }}>📋</span>
-              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600, letterSpacing: '0.05em' }}>CONTRACT</span>
-              <a href={`https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}`} target="_blank" rel="noreferrer"
-                style={{ fontSize: 12, color: '#F97316', fontFamily: 'monospace', textDecoration: 'none' }}>
+          {/* ===== CONTRACT BAR ===== */}
+          <div className="contract-bar">
+            <div className="contract-bar-left">
+              <span style={{ fontSize: 13, flexShrink: 0 }}>📋</span>
+              <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600, letterSpacing: '0.05em', flexShrink: 0 }}>CONTRACT</span>
+              <a href={`https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}`} target="_blank" rel="noreferrer" className="contract-address">
                 {CAMPAIGN_CONTRACT.slice(0, 14)}...{CAMPAIGN_CONTRACT.slice(-6)}
               </a>
             </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div className="contract-bar-badges">
               <span className="badge badge-green">✅ Deployed</span>
               <span className="badge badge-orange">Testnet</span>
               <span className="badge badge-blue">Soroban v21</span>
-              {isDemoMode && <span className="badge badge-purple">🎮 Demo Mode</span>}
+              {isDemoMode && <span className="badge badge-purple">🎮 Demo</span>}
             </div>
           </div>
 
-          {/* ===== STATS ===== */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 14, marginBottom: 32 }}>
+          {/* ===== STATS GRID ===== */}
+          <div className="stats-grid">
             {([
-              ['🏆', campaigns.length, 'Total Campaigns', '#F97316'],
-              ['🔥', activeCount, 'Active Campaigns', '#FB923C'],
-              ['✅', fundedCount, 'Fully Funded', '#34D399'],
+              ['🏆', campaigns.length, 'Campaigns', '#F97316'],
+              ['🔥', activeCount, 'Active', '#FB923C'],
+              ['✅', fundedCount, 'Funded', '#34D399'],
               ['💰', totalRaised.toLocaleString(), 'XLM Raised', '#60A5FA'],
-              ['👥', totalBackers.toLocaleString(), 'Total Backers', '#A78BFA'],
+              ['👥', totalBackers, 'Backers', '#A78BFA'],
               ['💵', xlmPrice ? `$${(totalRaised * xlmPrice.price).toFixed(0)}` : '…', 'USD Value', '#FCD34D'],
             ] as [string, number | string, string, string][]).map(([icon, val, label, color], i) => (
-              <div key={label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.06}s` }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>{icon}</div>
-                <div style={{ fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 800, color, marginBottom: 4, animation: 'countUp 0.5s ease forwards' }}>{val}</div>
-                <div style={{ fontSize: 11, color: '#475569', fontWeight: 500 }}>{label}</div>
+              <div key={label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{icon}</div>
+                <div style={{ fontSize: 'clamp(16px,3vw,24px)', fontWeight: 800, color, marginBottom: 3 }}>{val}</div>
+                <div style={{ fontSize: 10, color: '#475569', fontWeight: 500 }}>{label}</div>
               </div>
             ))}
           </div>
 
-          {/* ===== WALLET PROMPT ===== */}
+          {/* Wallet prompt banner */}
           {!wallet && (
-            <div style={{ marginBottom: 24, padding: '16px 20px', borderRadius: 16, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 20 }}>💡</span>
-              <div style={{ flex: 1 }}>
+            <div className="wallet-prompt">
+              <span style={{ fontSize: 18, flexShrink: 0 }}>💡</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#60A5FA', marginBottom: 2 }}>Launch Demo to interact</p>
-                <p style={{ fontSize: 12, color: '#475569' }}>Click the button above to enable funding, creating campaigns, and live transactions.</p>
+                <p style={{ fontSize: 11, color: '#475569' }}>Fund campaigns, create projects, and vote on milestones.</p>
               </div>
-              <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '10px 20px', fontSize: 13, flexShrink: 0 }}>
-                {loading ? '⏳' : '▶ Launch'}
+              <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '9px 16px', fontSize: 12, flexShrink: 0 }}>
+                {loading ? '⏳' : '▶ Go'}
               </button>
             </div>
           )}
 
           {/* ===== TABS ===== */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
+          <div className="tabs-scroll">
             {tabs.map(t => (
               <button key={t.id} className={`tab-btn ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
                 {t.label}
@@ -527,33 +526,30 @@ export default function Home() {
           {/* ===== CAMPAIGNS TAB ===== */}
           {activeTab === 'campaigns' && (
             <>
-              {/* Filter + Sort */}
-              <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: 6 }}>
+              <div className="filter-row">
+                <div className="filter-cats">
                   {categories.map(cat => (
                     <button key={cat}
                       onClick={() => setFilterCategory(cat)}
+                      className="filter-cat-btn"
                       style={{
-                        padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                        cursor: 'pointer', border: '1px solid',
                         background: filterCategory === cat ? 'rgba(249,115,22,0.12)' : 'transparent',
                         borderColor: filterCategory === cat ? 'rgba(249,115,22,0.4)' : 'rgba(255,255,255,0.08)',
                         color: filterCategory === cat ? '#F97316' : '#64748B',
-                        transition: 'all 0.2s',
                       }}>{cat}</button>
                   ))}
                 </div>
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as 'raised' | 'pct' | 'deadline')}
-                  style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8', fontSize: 12, cursor: 'pointer', outline: 'none' }}>
-                  <option value="raised">Sort: Most Raised</option>
-                  <option value="pct">Sort: % Funded</option>
-                  <option value="deadline">Sort: Deadline</option>
+                  className="filter-sort-select">
+                  <option value="raised">Most Raised</option>
+                  <option value="pct">% Funded</option>
+                  <option value="deadline">Deadline</option>
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 20 }}>
+              <div className="campaigns-grid">
                 {filteredCampaigns.map((c, i) => {
                   const p = pct(c);
                   const days = daysLeft(c.deadline);
@@ -562,40 +558,37 @@ export default function Home() {
                   const isExpanded = expandedCampaign === c.id;
                   const reachedMilestones = c.milestones.filter(m => m.reached).length;
                   return (
-                    <div key={c.id} className="card animate-fade-in" style={{ animationDelay: `${i * 0.08}s`, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, gap: 8 }}>
+                    <div key={c.id} className="card animate-fade-in" style={{ animationDelay: `${i * 0.07}s`, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10, gap: 6 }}>
                         <span className={`badge ${CATEGORY_COLOR[c.category] ?? 'badge-orange'}`}>{c.category}</span>
                         <span className={`badge ${isFull ? 'badge-green' : isActive ? 'badge-green' : 'badge-red'}`}>
                           {isFull ? '🎉 Funded' : isActive ? `${days}d left` : 'Ended'}
                         </span>
                       </div>
 
-                      <h3 style={{ fontWeight: 800, fontSize: 16, color: '#F1F5F9', marginBottom: 6 }}>{c.title}</h3>
-                      <p style={{ fontSize: 12, color: '#475569', lineHeight: 1.6, marginBottom: 12, flex: 1 }}>{c.description}</p>
+                      <h3 style={{ fontWeight: 800, fontSize: 15, color: '#F1F5F9', marginBottom: 6, lineHeight: 1.3 }}>{c.title}</h3>
+                      <p style={{ fontSize: 12, color: '#475569', lineHeight: 1.6, marginBottom: 10, flex: 1 }}>{c.description}</p>
 
-                      {/* Tags */}
-                      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
                         {c.tags.map(tag => (
-                          <span key={tag} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#475569' }}>#{tag}</span>
+                          <span key={tag} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#475569' }}>#{tag}</span>
                         ))}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-                        <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#F97316,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>👤</div>
-                        <span style={{ fontSize: 11, color: '#475569' }}>by <span style={{ color: '#94A3B8', fontFamily: 'monospace' }}>{c.creator}</span></span>
-                        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569' }}>👥 {c.backerCount} backers</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(135deg,#F97316,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, flexShrink: 0 }}>👤</div>
+                        <span style={{ fontSize: 10, color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>by <span style={{ color: '#94A3B8', fontFamily: 'monospace' }}>{c.creator}</span></span>
+                        <span style={{ fontSize: 10, color: '#475569', flexShrink: 0 }}>👥 {c.backerCount}</span>
                       </div>
 
-                      {/* Milestone progress */}
-                      <div style={{ marginBottom: 6 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                           <span style={{ fontSize: 10, color: '#475569' }}>Milestones {reachedMilestones}/{c.milestones.length}</span>
-                          <span style={{ fontSize: 10, color: '#F97316' }}>{p}% funded</span>
+                          <span style={{ fontSize: 10, color: '#F97316', fontWeight: 700 }}>{p}% funded</span>
                         </div>
                         <div className="progress-track">
                           <div className="progress-fill" style={{ width: `${p}%` }} />
                         </div>
-                        {/* Milestone markers */}
                         <div style={{ position: 'relative', height: 4, marginTop: 2 }}>
                           {c.milestones.map((m, idx) => (
                             <div key={idx} style={{
@@ -610,12 +603,12 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, marginBottom: 14 }}>
-                        <span style={{ color: '#94A3B8' }}>
-                          <b style={{ color: '#F97316', fontSize: 15, fontWeight: 800 }}>{c.raised.toLocaleString()}</b>
-                          <span style={{ color: '#334155' }}> / {c.goal.toLocaleString()} XLM</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, marginBottom: 12 }}>
+                        <span>
+                          <b style={{ color: '#F97316', fontSize: 14, fontWeight: 800 }}>{c.raised.toLocaleString()}</b>
+                          <span style={{ color: '#334155', fontSize: 12 }}> / {c.goal.toLocaleString()} XLM</span>
                         </span>
-                        {xlmPrice && <span style={{ fontSize: 11, color: '#475569' }}>(${(c.raised * xlmPrice.price).toFixed(0)} USD)</span>}
+                        {xlmPrice && <span style={{ fontSize: 10, color: '#475569' }}>${(c.raised * xlmPrice.price).toFixed(0)}</span>}
                       </div>
 
                       <button
@@ -625,12 +618,11 @@ export default function Home() {
                         }}
                         disabled={txStatus === 'pending' || (isFull && !!wallet)}
                         className="btn-orange"
-                        style={{ fontSize: 13, padding: '11px 16px', marginBottom: 10 }}
+                        style={{ fontSize: 13, padding: '11px 14px', marginBottom: 8 }}
                       >
                         {txStatus === 'pending' ? '⏳ Processing...' : isFull ? '🎉 Fully Funded' : !wallet ? '▶ Connect to Fund' : '💰 Fund this Campaign'}
                       </button>
 
-                      {/* Expand milestones */}
                       <button
                         onClick={() => setExpandedCampaign(isExpanded ? null : c.id)}
                         className="btn-ghost"
@@ -640,31 +632,32 @@ export default function Home() {
                       </button>
 
                       {isExpanded && (
-                        <div className="animate-fade-in" style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
-                          <p style={{ fontSize: 11, color: '#475569', marginBottom: 10, fontWeight: 600, letterSpacing: '0.05em' }}>MILESTONE VOTING</p>
+                        <div className="animate-fade-in" style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+                          <p style={{ fontSize: 10, color: '#475569', marginBottom: 8, fontWeight: 600, letterSpacing: '0.05em' }}>MILESTONE VOTING</p>
                           {c.milestones.map((m, idx) => (
                             <div key={idx} style={{
-                              padding: '10px 12px', borderRadius: 10, marginBottom: 8,
+                              padding: '9px 11px', borderRadius: 10, marginBottom: 7,
                               background: m.reached ? 'rgba(52,211,153,0.06)' : 'rgba(255,255,255,0.02)',
                               border: `1px solid ${m.reached ? 'rgba(52,211,153,0.2)' : 'rgba(255,255,255,0.06)'}`,
-                              display: 'flex', alignItems: 'center', gap: 10,
+                              display: 'flex', alignItems: 'center', gap: 8,
                             }}>
-                              <span style={{ fontSize: 14 }}>{m.reached ? '✅' : '⏳'}</span>
+                              <span style={{ fontSize: 13, flexShrink: 0 }}>{m.reached ? '✅' : '⏳'}</span>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ fontSize: 12, fontWeight: 600, color: m.reached ? '#34D399' : '#94A3B8', marginBottom: 2 }}>{m.label}</p>
-                                <p style={{ fontSize: 10, color: '#475569' }}>{m.target.toLocaleString()} XLM target · {m.votes} votes</p>
+                                <p style={{ fontSize: 11, fontWeight: 600, color: m.reached ? '#34D399' : '#94A3B8', marginBottom: 1 }}>{m.label}</p>
+                                <p style={{ fontSize: 10, color: '#475569' }}>{m.target.toLocaleString()} XLM · {m.votes} votes</p>
                               </div>
                               <button
                                 onClick={() => handleVoteMilestone(c.id, idx)}
                                 disabled={!wallet || m.votedBy.includes(wallet)}
                                 style={{
-                                  padding: '5px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                                  padding: '5px 9px', borderRadius: 6, fontSize: 10, fontWeight: 600,
                                   border: '1px solid rgba(249,115,22,0.3)',
                                   background: m.votedBy.includes(wallet) ? 'rgba(52,211,153,0.1)' : 'rgba(249,115,22,0.08)',
                                   color: m.votedBy.includes(wallet) ? '#34D399' : '#F97316',
                                   cursor: !wallet || m.votedBy.includes(wallet) ? 'not-allowed' : 'pointer',
                                   opacity: !wallet ? 0.5 : 1,
                                   transition: 'all 0.2s',
+                                  flexShrink: 0,
                                 }}
                               >
                                 {m.votedBy.includes(wallet) ? '✓ Voted' : '👍 Vote'}
@@ -683,36 +676,36 @@ export default function Home() {
           {/* ===== EVENTS TAB ===== */}
           {activeTab === 'events' && (
             <div className="card-glass animate-fade-in">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34D399', animation: 'pulse-glow 2s ease-in-out infinite' }} />
-                  <h2 style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9' }}>Live On-Chain Events</h2>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34D399', animation: 'pulse-glow 2s ease-in-out infinite', flexShrink: 0 }} />
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9' }}>Live On-Chain Events</h2>
                 </div>
                 <span className="badge badge-green">Streaming</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {events.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '40px 0', color: '#334155' }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>📡</div>
-                    <div style={{ fontSize: 13 }}>No events yet. Fund a campaign to see live updates!</div>
+                  <div style={{ textAlign: 'center', padding: '36px 0', color: '#334155' }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>📡</div>
+                    <div style={{ fontSize: 13, color: '#475569' }}>No events yet. Fund a campaign to see live updates!</div>
                   </div>
                 )}
                 {events.map((ev, i) => (
                   <div key={i} className="event-item">
-                    <span style={{ fontSize: 18, flexShrink: 0 }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>
                       {ev.type === 'contrib' ? '💰' : ev.type === 'created' ? '🚀' : ev.type === 'milestone' ? '🏁' : ev.type === 'voted' ? '👍' : '🏆'}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>
+                      <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {ev.type === 'contrib'
-                          ? <><span style={{ color: '#F97316' }}>{ev.from}</span> funded <span style={{ color: '#34D399' }}>{ev.amount} XLM</span> → Campaign #{ev.campaignId}</>
+                          ? <>{ev.from} funded {ev.amount} XLM → Campaign #{ev.campaignId}</>
                           : ev.type === 'created'
-                          ? <>Campaign <span style={{ color: '#F97316' }}>&quot;{ev.title}&quot;</span> created</>
-                          : ev.type === 'milestone'
-                          ? <><span style={{ color: '#F97316' }}>{ev.from}</span> confirmed milestone: <span style={{ color: '#34D399' }}>{ev.milestone}</span></>
+                          ? <>Campaign &quot;{ev.title}&quot; created</>
                           : ev.type === 'voted'
-                          ? <><span style={{ color: '#F97316' }}>{ev.from}</span> voted on: <span style={{ color: '#A78BFA' }}>{ev.milestone}</span></>
-                          : <>Campaign #{ev.campaignId} funds claimed</>}
+                          ? <>{ev.from} voted on: {ev.milestone}</>
+                          : ev.type === 'milestone'
+                          ? <>{ev.from} confirmed: {ev.milestone}</>
+                          : <>Campaign #{ev.campaignId} claimed</>}
                       </p>
                     </div>
                     <span style={{ fontSize: 10, color: '#334155', flexShrink: 0 }}>
@@ -726,104 +719,105 @@ export default function Home() {
 
           {/* ===== ANALYTICS TAB ===== */}
           {activeTab === 'analytics' && (
-            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 20 }}>
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16 }}>
+
                 {/* Bar Chart — Raised vs Goal */}
                 <div className="card-glass">
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 20 }}>📊 Raised vs Goal by Campaign</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 18 }}>📊 Raised vs Goal</h3>
                   {analyticsData.map(d => (
-                    <div key={d.label} style={{ marginBottom: 18 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div key={d.label} style={{ marginBottom: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                         <span style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>{d.label}</span>
                         <span style={{ fontSize: 12, color: d.color, fontWeight: 700 }}>{((d.raised / d.goal) * 100).toFixed(0)}%</span>
                       </div>
                       <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <div style={{ flex: 1, height: 28, borderRadius: 6, background: 'rgba(255,255,255,0.04)', overflow: 'hidden', position: 'relative' }}>
+                        <div style={{ flex: 1, height: 26, borderRadius: 6, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                           <div style={{
                             height: '100%', width: `${(d.raised / d.goal) * 100}%`,
                             background: `linear-gradient(90deg, ${d.color}88, ${d.color})`,
                             borderRadius: 6,
-                            transition: 'width 1s cubic-bezier(0.16,1,0.3,1)',
                             display: 'flex', alignItems: 'center', paddingLeft: 8,
                           }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{d.raised.toLocaleString()} XLM</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>{d.raised.toLocaleString()}</span>
                           </div>
                         </div>
-                        <span style={{ fontSize: 10, color: '#334155', minWidth: 60, textAlign: 'right' }}>/ {d.goal.toLocaleString()}</span>
+                        <span style={{ fontSize: 10, color: '#334155', minWidth: 52, textAlign: 'right' }}>/ {d.goal.toLocaleString()}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Backers Distribution */}
+                {/* Backers */}
                 <div className="card-glass">
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 20 }}>👥 Backers Distribution</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 18 }}>👥 Backers Distribution</h3>
                   {analyticsData.map(d => {
                     const barW = (d.backers / Math.max(...analyticsData.map(x => x.backers))) * 100;
                     return (
-                      <div key={d.label} style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <div key={d.label} style={{ marginBottom: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                           <span style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>{d.label}</span>
-                          <span style={{ fontSize: 12, color: d.color, fontWeight: 700 }}>{d.backers} backers</span>
+                          <span style={{ fontSize: 12, color: d.color, fontWeight: 700 }}>{d.backers}</span>
                         </div>
-                        <div style={{ height: 10, borderRadius: 5, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
+                        <div style={{ height: 9, borderRadius: 5, background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                           <div style={{ height: '100%', width: `${barW}%`, background: d.color, borderRadius: 5, transition: 'width 1s ease' }} />
                         </div>
                       </div>
                     );
                   })}
-                  <div style={{ marginTop: 20, padding: '12px 14px', borderRadius: 10, background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)' }}>
-                    <p style={{ fontSize: 12, color: '#F97316', fontWeight: 700 }}>Total: {totalBackers} unique backers across {campaigns.length} campaigns</p>
-                    <p style={{ fontSize: 11, color: '#475569', marginTop: 4 }}>Average: {(totalBackers / campaigns.length).toFixed(0)} backers/campaign</p>
+                  <div style={{ marginTop: 16, padding: '10px 12px', borderRadius: 10, background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)' }}>
+                    <p style={{ fontSize: 11, color: '#F97316', fontWeight: 700 }}>Total: {totalBackers} backers across {campaigns.length} campaigns</p>
+                    <p style={{ fontSize: 10, color: '#475569', marginTop: 3 }}>Avg: {(totalBackers / campaigns.length).toFixed(0)} per campaign</p>
                   </div>
                 </div>
 
-                {/* Funding velocity */}
+                {/* Velocity */}
                 <div className="card-glass">
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 20 }}>⚡ Funding Velocity</h3>
-                  {analyticsData.map((d, i) => {
-                    const h = (d.raised / maxRaised) * 120;
-                    return (
-                      <div key={d.label} style={{ display: 'inline-block', textAlign: 'center', marginRight: 24 }}>
-                        <div style={{ width: 48, height: 120, background: 'rgba(255,255,255,0.03)', borderRadius: 6, display: 'flex', alignItems: 'flex-end', overflow: 'hidden', marginBottom: 8 }}>
-                          <div style={{
-                            width: '100%', height: h,
-                            background: `linear-gradient(180deg, ${d.color}, ${d.color}44)`,
-                            borderRadius: '6px 6px 0 0',
-                            transition: `height ${0.8 + i * 0.2}s cubic-bezier(0.16,1,0.3,1)`,
-                          }} />
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 16 }}>⚡ Funding Velocity</h3>
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', height: 130 }}>
+                    {analyticsData.map((d, i) => {
+                      const h = Math.round((d.raised / maxRaised) * 100);
+                      return (
+                        <div key={d.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                          <span style={{ fontSize: 10, color: d.color, fontWeight: 700, marginBottom: 4 }}>{(d.raised / 1000).toFixed(1)}k</span>
+                          <div style={{ width: '100%', maxWidth: 48, background: 'rgba(255,255,255,0.03)', borderRadius: 6, height: 90, display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }}>
+                            <div style={{
+                              width: '100%',
+                              height: `${h}%`,
+                              background: `linear-gradient(180deg, ${d.color}, ${d.color}44)`,
+                              borderRadius: '6px 6px 0 0',
+                              transition: `height ${0.8 + i * 0.2}s cubic-bezier(0.16,1,0.3,1)`,
+                            }} />
+                          </div>
+                          <p style={{ fontSize: 10, color: '#64748B', fontWeight: 600, marginTop: 6, textAlign: 'center' }}>{d.label}</p>
                         </div>
-                        <p style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{d.label}</p>
-                        <p style={{ fontSize: 11, color: d.color, fontWeight: 700 }}>{(d.raised / 1000).toFixed(1)}k</p>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* XLM Price widget */}
+                {/* XLM Market */}
                 <div className="card-glass">
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 16 }}>💹 XLM Market Data</h3>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 14 }}>💹 XLM Market</h3>
                   {xlmPrice ? (
                     <>
-                      <div style={{ fontSize: 36, fontWeight: 900, color: '#F97316', marginBottom: 4 }}>${xlmPrice.price.toFixed(4)}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: xlmPrice.change >= 0 ? '#34D399' : '#F87171' }}>
+                      <div style={{ fontSize: 32, fontWeight: 900, color: '#F97316', marginBottom: 4 }}>${xlmPrice.price.toFixed(4)}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: xlmPrice.change >= 0 ? '#34D399' : '#F87171' }}>
                           {xlmPrice.change >= 0 ? '▲' : '▼'} {Math.abs(xlmPrice.change).toFixed(2)}% (24h)
                         </span>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)' }}>
-                          <span style={{ fontSize: 12, color: '#475569' }}>Total XLM Raised</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#60A5FA' }}>{totalRaised.toLocaleString()} XLM</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)' }}>
-                          <span style={{ fontSize: 12, color: '#475569' }}>USD Equivalent</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#34D399' }}>${(totalRaised * xlmPrice.price).toFixed(2)}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)' }}>
-                          <span style={{ fontSize: 12, color: '#475569' }}>Network</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#F97316' }}>Stellar Testnet</span>
-                        </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {[
+                          ['Total XLM Raised', `${totalRaised.toLocaleString()} XLM`, '#60A5FA'],
+                          ['USD Equivalent', `$${(totalRaised * xlmPrice.price).toFixed(2)}`, '#34D399'],
+                          ['Network', 'Stellar Testnet', '#F97316'],
+                        ].map(([k, v, c]) => (
+                          <div key={k as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 11px', borderRadius: 8, background: 'rgba(255,255,255,0.03)' }}>
+                            <span style={{ fontSize: 11, color: '#475569' }}>{k}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: c as string }}>{v}</span>
+                          </div>
+                        ))}
                       </div>
                     </>
                   ) : (
@@ -837,34 +831,33 @@ export default function Home() {
           {/* ===== LEADERBOARD TAB ===== */}
           {activeTab === 'leaderboard' && (
             <div className="animate-fade-in">
-              <div className="card-glass" style={{ marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                  <span style={{ fontSize: 24 }}>🏆</span>
-                  <h2 style={{ fontSize: 16, fontWeight: 800, color: '#F1F5F9' }}>Top Contributors Leaderboard</h2>
+              <div className="card-glass" style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                  <span style={{ fontSize: 22 }}>🏆</span>
+                  <h2 style={{ fontSize: 15, fontWeight: 800, color: '#F1F5F9' }}>Top Contributors</h2>
                 </div>
                 {leaderboard.map((l, i) => (
                   <div key={l.address} style={{
-                    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-                    borderRadius: 12, marginBottom: 10,
-                    background: i === 0 ? 'rgba(249,115,22,0.08)' : i === 1 ? 'rgba(148,163,184,0.05)' : i === 2 ? 'rgba(180,130,60,0.05)' : 'rgba(255,255,255,0.02)',
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                    borderRadius: 12, marginBottom: 8,
+                    background: i === 0 ? 'rgba(249,115,22,0.08)' : 'rgba(255,255,255,0.02)',
                     border: `1px solid ${i === 0 ? 'rgba(249,115,22,0.2)' : 'rgba(255,255,255,0.06)'}`,
-                    transition: 'all 0.2s',
                   }}>
-                    <span style={{ fontSize: 22, minWidth: 32, textAlign: 'center' }}>{l.badge}</span>
+                    <span style={{ fontSize: 20, minWidth: 28, textAlign: 'center', flexShrink: 0 }}>{l.badge}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#E2E8F0', fontFamily: 'monospace', marginBottom: 2 }}>{l.address}</p>
-                      <p style={{ fontSize: 11, color: '#475569' }}>{l.count} contributions</p>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#E2E8F0', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.address}</p>
+                      <p style={{ fontSize: 10, color: '#475569' }}>{l.count} contributions</p>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: 16, fontWeight: 800, color: i === 0 ? '#F97316' : '#94A3B8' }}>{l.total.toLocaleString()}</p>
-                      <p style={{ fontSize: 10, color: '#334155' }}>XLM contributed</p>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 800, color: i === 0 ? '#F97316' : '#94A3B8' }}>{l.total.toLocaleString()}</p>
+                      <p style={{ fontSize: 9, color: '#334155' }}>XLM</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ padding: '16px 20px', borderRadius: 14, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: '#60A5FA', fontWeight: 600, marginBottom: 4 }}>Your rank updates live as you fund campaigns</p>
-                <p style={{ fontSize: 12, color: '#334155' }}>Connect wallet and fund campaigns to join the leaderboard</p>
+              <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.2)', textAlign: 'center' }}>
+                <p style={{ fontSize: 12, color: '#60A5FA', fontWeight: 600, marginBottom: 3 }}>Rank updates live as you fund campaigns</p>
+                <p style={{ fontSize: 11, color: '#334155' }}>Fund campaigns to appear on the leaderboard</p>
               </div>
             </div>
           )}
@@ -873,60 +866,60 @@ export default function Home() {
           {activeTab === 'wallet' && (
             <div className="animate-fade-in">
               {!wallet ? (
-                <div className="card-glass" style={{ textAlign: 'center', padding: '60px 20px' }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>👛</div>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F1F5F9', marginBottom: 8 }}>Connect your wallet</h3>
-                  <p style={{ fontSize: 13, color: '#475569', marginBottom: 24 }}>Connect Freighter or use Demo Mode to view your wallet details and transaction history.</p>
-                  <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '12px 28px' }}>
+                <div className="card-glass" style={{ textAlign: 'center', padding: '48px 20px' }}>
+                  <div style={{ fontSize: 44, marginBottom: 14 }}>👛</div>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9', marginBottom: 8 }}>Connect your wallet</h3>
+                  <p style={{ fontSize: 13, color: '#475569', marginBottom: 20 }}>Connect Freighter or use Demo Mode to view wallet details.</p>
+                  <button onClick={handleConnect} disabled={loading} className="btn-orange" style={{ width: 'auto', padding: '12px 24px' }}>
                     {loading ? '⏳' : '▶ Connect Wallet'}
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16 }}>
                   <div className="card-glass">
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 16 }}>👛 Wallet Overview</h3>
-                    <div style={{ padding: '16px', borderRadius: 12, background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.2)', marginBottom: 16 }}>
-                      <p style={{ fontSize: 10, color: '#475569', letterSpacing: '0.05em', marginBottom: 4 }}>ADDRESS</p>
-                      <p style={{ fontSize: 11, fontFamily: 'monospace', color: '#94A3B8', wordBreak: 'break-all', marginBottom: 2 }}>{wallet}</p>
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 14 }}>👛 Wallet Overview</h3>
+                    <div style={{ padding: '14px', borderRadius: 10, background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.2)', marginBottom: 14 }}>
+                      <p style={{ fontSize: 9, color: '#475569', letterSpacing: '0.05em', marginBottom: 4 }}>ADDRESS</p>
+                      <p style={{ fontSize: 10, fontFamily: 'monospace', color: '#94A3B8', wordBreak: 'break-all', marginBottom: 4 }}>{wallet}</p>
                       {isDemoMode && <span className="badge badge-blue" style={{ fontSize: 10 }}>🎮 Demo Address</span>}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', textAlign: 'center' }}>
-                        <p style={{ fontSize: 20, fontWeight: 800, color: '#F97316' }}>{parseFloat(balance).toLocaleString()}</p>
+                        <p style={{ fontSize: 18, fontWeight: 800, color: '#F97316' }}>{parseFloat(balance).toLocaleString()}</p>
                         <p style={{ fontSize: 10, color: '#475569' }}>XLM Balance</p>
                       </div>
                       <div style={{ padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', textAlign: 'center' }}>
-                        <p style={{ fontSize: 20, fontWeight: 800, color: '#34D399' }}>${xlmPrice ? (parseFloat(balance) * xlmPrice.price).toFixed(2) : '...'}</p>
+                        <p style={{ fontSize: 18, fontWeight: 800, color: '#34D399' }}>${xlmPrice ? (parseFloat(balance) * xlmPrice.price).toFixed(0) : '...'}</p>
                         <p style={{ fontSize: 10, color: '#475569' }}>USD Value</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="card-glass">
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 16 }}>📜 Transaction History</h3>
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 14 }}>📜 Transaction History</h3>
                     {isDemoMode ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0', color: '#334155' }}>
-                        <div style={{ fontSize: 28, marginBottom: 8 }}>🎮</div>
-                        <p style={{ fontSize: 13, color: '#475569' }}>Demo mode — real transactions appear here when you connect Freighter with a live testnet account.</p>
-                        <p style={{ fontSize: 11, color: '#334155', marginTop: 8 }}>Fund campaigns above to see demo activity recorded in Live Events.</p>
+                      <div style={{ textAlign: 'center', padding: '20px 0', color: '#334155' }}>
+                        <div style={{ fontSize: 26, marginBottom: 8 }}>🎮</div>
+                        <p style={{ fontSize: 12, color: '#475569' }}>Demo mode — real transactions appear here with Freighter.</p>
+                        <p style={{ fontSize: 11, color: '#334155', marginTop: 6 }}>Fund campaigns to see demo activity in Live Events.</p>
                       </div>
                     ) : walletTxs.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                        <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
-                        <p style={{ fontSize: 13, color: '#475569' }}>No transactions found on testnet.</p>
+                      <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                        <div style={{ fontSize: 26, marginBottom: 8 }}>📭</div>
+                        <p style={{ fontSize: 12, color: '#475569' }}>No transactions on testnet yet.</p>
                         <a href={`https://stellar.expert/explorer/testnet/account/${wallet}`} target="_blank" rel="noreferrer"
-                          style={{ fontSize: 12, color: '#F97316', display: 'block', marginTop: 8 }}>View on Stellar Expert →</a>
+                          style={{ fontSize: 12, color: '#F97316', display: 'block', marginTop: 6 }}>View on Stellar Expert →</a>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {walletTxs.map(tx => (
-                          <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <span style={{ fontSize: 16 }}>{tx.from === wallet ? '📤' : '📥'}</span>
+                          <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <span style={{ fontSize: 14, flexShrink: 0 }}>{tx.from === wallet ? '📤' : '📥'}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, marginBottom: 1 }}>{tx.type}</p>
-                              <p style={{ fontSize: 10, color: '#334155', fontFamily: 'monospace' }}>{tx.hash?.slice(0, 20)}...</p>
+                              <p style={{ fontSize: 10, color: '#334155', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.hash?.slice(0, 20)}...</p>
                             </div>
-                            <div style={{ textAlign: 'right' }}>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
                               <p style={{ fontSize: 12, fontWeight: 700, color: tx.from === wallet ? '#F87171' : '#34D399' }}>
                                 {tx.from === wallet ? '-' : '+'}{tx.amount} XLM
                               </p>
@@ -939,22 +932,22 @@ export default function Home() {
                   </div>
 
                   <div className="card-glass">
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9', marginBottom: 16 }}>🔗 Testnet Resources</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#F1F5F9', marginBottom: 14 }}>🔗 Testnet Resources</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                       {[
-                        { icon: '🔍', label: 'View Account on Explorer', href: `https://stellar.expert/explorer/testnet/account/${wallet}` },
+                        { icon: '🔍', label: 'Account Explorer', href: `https://stellar.expert/explorer/testnet/account/${wallet}` },
                         { icon: '🧪', label: 'Stellar Laboratory', href: 'https://laboratory.stellar.org' },
                         { icon: '💧', label: 'Friendbot — Get Test XLM', href: `https://friendbot.stellar.org/?addr=${wallet}` },
-                        { icon: '📋', label: 'Contract on Explorer', href: `https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}` },
+                        { icon: '📋', label: 'Contract Explorer', href: `https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}` },
                       ].map(item => (
                         <a key={item.label} href={item.href} target="_blank" rel="noreferrer"
-                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', textDecoration: 'none', transition: 'all 0.2s', color: 'inherit' }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(249,115,22,0.3)'; (e.currentTarget as HTMLElement).style.background = 'rgba(249,115,22,0.04)'; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', textDecoration: 'none', transition: 'all 0.2s', color: 'inherit' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(249,115,22,0.3)'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; }}
                         >
-                          <span style={{ fontSize: 16 }}>{item.icon}</span>
-                          <span style={{ fontSize: 13, color: '#94A3B8', fontWeight: 500 }}>{item.label}</span>
-                          <span style={{ marginLeft: 'auto', color: '#334155', fontSize: 12 }}>→</span>
+                          <span style={{ fontSize: 15, flexShrink: 0 }}>{item.icon}</span>
+                          <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500, flex: 1 }}>{item.label}</span>
+                          <span style={{ color: '#334155', fontSize: 12 }}>→</span>
                         </a>
                       ))}
                     </div>
@@ -965,13 +958,13 @@ export default function Home() {
           )}
 
           {/* ===== FOOTER ===== */}
-          <footer style={{ marginTop: 64, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-              <a href="https://github.com/gopichandchalla16/stellar-orange-belt" target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 12, textDecoration: 'none' }}>📁 GitHub Repo</a>
-              <a href={`https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}`} target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 12, textDecoration: 'none' }}>🔍 Contract Explorer</a>
-              <a href="https://laboratory.stellar.org" target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 12, textDecoration: 'none' }}>🧪 Stellar Lab</a>
+          <footer style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
+              <a href="https://github.com/gopichandchalla16/stellar-orange-belt" target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 11, textDecoration: 'none' }}>📁 GitHub</a>
+              <a href={`https://stellar.expert/explorer/testnet/contract/${CAMPAIGN_CONTRACT}`} target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 11, textDecoration: 'none' }}>🔍 Contract</a>
+              <a href="https://laboratory.stellar.org" target="_blank" rel="noreferrer" className="btn-ghost" style={{ fontSize: 11, textDecoration: 'none' }}>🧪 Lab</a>
             </div>
-            <p style={{ fontSize: 11, color: '#1E293B' }}>StellarFund · Level 3 Orange Belt Submission · Built on Soroban Testnet</p>
+            <p style={{ fontSize: 10, color: '#1E293B' }}>StellarFund · Level 3 Orange Belt · Built on Soroban Testnet</p>
           </footer>
         </div>
       </div>
