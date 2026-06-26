@@ -12,23 +12,23 @@
 
 ## 📸 Screenshots
 
-### Mobile UI
-![Mobile UI](screenshots/screenshot-mobile-ui.jpg)
+### 1. Mobile-First UI
+![Mobile UI](screenshots/screenshot-mobile-ui.jpeg)
 
-### CI/CD Pipeline — GitHub Actions
-![CI/CD Pipeline](screenshots/screenshot-cicd-pipeline.jpg)
+### 2. CI/CD Pipeline — GitHub Actions
+![CI/CD Pipeline](screenshots/screenshot-cicd-pipeline.jpeg)
 
-### All 28 Tests Passing
-![Tests Passing](screenshots/screenshot-tests-passing.jpg)
+### 3. All 28 Tests Passing
+![Tests Passing](screenshots/screenshot-tests-passing.jpeg)
 
-### Smart Contract Explorer — Stellar Lab
-![Contract Explorer](screenshots/screenshot-contract-explorer.jpg)
+### 4. Smart Contract Explorer — Stellar Lab
+![Contract Explorer](screenshots/screenshot-contract-explorer.jpeg)
 
-### Commit History (24 commits)
-![Commits](screenshots/screenshot-commits.jpg)
+### 5. Commit History
+![Commits](screenshots/screenshot-commits.jpeg)
 
-### Contribute / Fund Modal
-![Contribute Modal](screenshots/screenshot-contribute-modal.jpg)
+### 6. Contribute / Fund Campaign Modal
+![Contribute Modal](screenshots/screenshot-contribute-modal.jpeg)
 
 ---
 
