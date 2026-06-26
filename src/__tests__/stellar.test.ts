@@ -10,7 +10,7 @@ function formatXLM(raw: string | number): string {
 
 function shortenKey(key: string): string {
   if (!key || key.length < 10) return key || '';
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
+  return `${key.slice(0, 4)}...${key.slice(-3)}`;
 }
 
 function isValidStellarAddress(address: string): boolean {
